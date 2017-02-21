@@ -3,7 +3,7 @@ line by line instead of just forking it. All code here is Ardan labs.
 
 
 # cfg
-    import "github.com/ardanlabs/kit/cfg"
+    import "github.com/deliri/webConfig/cfg"
 
 Package cfg provides configuration options that are loaded from the environment.
 Configuration is then stored in memory and can be retrieved by its proper
