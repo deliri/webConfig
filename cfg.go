@@ -18,12 +18,10 @@ type Config struct {
 }
 
 // Provider is implemented by the user to provide the configuration as a map.
-// There are currently two Providers implemented, EnvProvider and MapProvider.
+// The two Providers are implemented, EnvProvider and MapProvider.
 type Provider interface {
 	Provide() (map[string]string, error)
 }
-
-//==============================================================================
 
 // New populates a new Config from a Provider. It will return an error if there
 // was any problem reading from the Provider.
