@@ -78,7 +78,7 @@ func Time(key string) (time.Time, error) {
 	return c.Time(key)
 }
 
-// MustTime calls the default Config ang returns the value of the given key as
+// MustTime calls the default Config and returns the value of the given key as
 // a Time. It will panic if the key was not found or the value can't be
 // converted to a Time.
 func MustTime(key string) time.Time {
