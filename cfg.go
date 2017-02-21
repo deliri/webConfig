@@ -10,31 +10,36 @@ import (
 	"time"
 )
 
-// Config is a safe goroutine store with a map of valus set from the config provider
+// Config is a goroutine safe configuration store, with a map of values
+// set from a config Provider.
 type Config struct {
 	m  map[string]string
 	mu sync.RWMutex
 }
 
-// Provider is implemented by the user to provide the config as a map.
-// Two providers EnvProvider and MapProvider
+// Provider is implemented by the user to provide the configuration as a map.
+// There are currently two Providers implemented, EnvProvider and MapProvider.
 type Provider interface {
 	Provide() (map[string]string, error)
 }
 
-// New Populates a new config from a provider. It will return an error if there is a problem
-// reading from the provider
+//==============================================================================
+
+// New populates a new Config from a Provider. It will return an error if there
+// was any problem reading from the Provider.
 func New(p Provider) (*Config, error) {
 	m, err := p.Provide()
 	if err != nil {
 		return nil, err
 	}
+
 	c := &Config{m: m}
+
 	return c, nil
 }
 
-// Log returns a string to help with logging the config. Excluding any values where the key in the string is
-// "PASS"
+// Log returns a string to help with logging your configuration. It excludes
+// any values whose key contains the string "PASS".
 func (c *Config) Log() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -45,34 +50,40 @@ func (c *Config) Log() string {
 			buf.WriteString(k + "=" + v + "\n")
 		}
 	}
+
 	return buf.String()
 }
 
-// String returns the value of the given key as a string. It will return an error if there is no key found.
+// String returns the value of the given key as a string. It will return an
+// error if key was not found.
 func (c *Config) String(key string) (string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		return "", fmt.Errorf("unknown key %s", key)
+		return "", fmt.Errorf("Unknown key %s !", key)
 	}
+
 	return value, nil
 }
 
-// MustString returns the value of the given key as a string. It will panic if the key was not found.
+// MustString returns the value of the given key as a string. It will panic if
+// the key was not found.
 func (c *Config) MustString(key string) string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		panic(fmt.Sprintf("uknown key %s", key))
+		panic(fmt.Sprintf("Unknown key %s !", key))
 	}
+
 	return value
 }
 
-// SetString adds or modifies the config for the specified key and value
+// SetString adds or modifies the configuration for the specified key and
+// value.
 func (c *Config) SetString(key string, value string) {
 	c.mu.RLock()
 	{
@@ -81,42 +92,45 @@ func (c *Config) SetString(key string, value string) {
 	c.mu.RUnlock()
 }
 
-// Int returns the value of the given key as an int. It will return an error if the key was not found
-// or the value can't be converted to an int
+// Int returns the value of the given key as an int. It will return an error if
+// the key was not found or the value can't be converted to an int.
 func (c *Config) Int(key string) (int, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		return 0, fmt.Errorf("Uknown key %s", key)
+		return 0, fmt.Errorf("Unknown Key %s !", key)
 	}
+
 	iv, err := strconv.Atoi(value)
 	if err != nil {
 		return 0, err
 	}
+
 	return iv, nil
 }
 
-// MustInt returns the value of the given key as an int. It will panic if the key was not found or the value
-// can't be converted to an int.
+// MustInt returns the value of the given key as an int. It will panic if the
+// key was not found or the value can't be converted to an int.
 func (c *Config) MustInt(key string) int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		panic(fmt.Sprintf("uknown key %s", key))
+		panic(fmt.Sprintf("Unknown Key %s !", key))
 	}
 
 	iv, err := strconv.Atoi(value)
 	if err != nil {
-		panic(fmt.Sprintf("key %q value is not an int", key))
+		panic(fmt.Sprintf("Key %q value is not an int", key))
 	}
+
 	return iv
 }
 
-// SetInt adds or modifies the configuration for the specified key and value
+// SetInt adds or modifies the configuration for the specified key and value.
 func (c *Config) SetInt(key string, value int) {
 	c.mu.RLock()
 	{
@@ -125,41 +139,45 @@ func (c *Config) SetInt(key string, value int) {
 	c.mu.RUnlock()
 }
 
-// Time returns the value of the given key as a Time. It will return an error if the key was not found or the value
-// can't be converted to a time.
+// Time returns the value of the given key as a Time. It will return an error
+// if the key was not found or the value can't be converted to a Time.
 func (c *Config) Time(key string) (time.Time, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		return time.Time{}, fmt.Errorf("Uknown key %s", key)
+		return time.Time{}, fmt.Errorf("Unknown Key %s !", key)
 	}
+
 	tv, err := time.Parse(time.UnixDate, value)
 	if err != nil {
 		return tv, err
 	}
+
 	return tv, nil
 }
 
 // MustTime returns the value of the given key as a Time. It will panic if the
-// key was not found or the value can't be converted to a time.
+// key was not found or the value can't be converted to a Time.
 func (c *Config) MustTime(key string) time.Time {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		panic(fmt.Sprintf("Uknown key %s", key))
+		panic(fmt.Sprintf("Unknown Key %s !", key))
 	}
+
 	tv, err := time.Parse(time.UnixDate, value)
 	if err != nil {
 		panic(fmt.Sprintf("Key %q value is not a Time", key))
 	}
+
 	return tv
 }
 
-// SetTime adds or modifies the config for the specified key and value
+// SetTime adds or modifies the configuration for the specified key and value.
 func (c *Config) SetTime(key string, value time.Time) {
 	c.mu.RLock()
 	{
@@ -168,16 +186,17 @@ func (c *Config) SetTime(key string, value time.Time) {
 	c.mu.RUnlock()
 }
 
-// Bool returns the bool value of a given key as a bool. It will return an error if the key was not found
-// or the value can't be converted to a bool.
+// Bool returns the bool value of a given key as a bool. It will return an
+// error if the key was not found or the value can't be converted to a bool.
 func (c *Config) Bool(key string) (bool, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		return false, fmt.Errorf("Uknown key %s", key)
+		return false, fmt.Errorf("Unknown Key %s !", key)
 	}
+
 	if value == "on" || value == "yes" {
 		value = "true"
 	} else if value == "off" || value == "no" {
@@ -188,18 +207,19 @@ func (c *Config) Bool(key string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return val, nil
 }
 
-// MustBool returns the vool value of a given key as a bool. It will panic if the key was not or
-// the value can't be converted to a bool
+// MustBool returns the bool value of a given key as a bool. It will panic if
+// the key was not found or the value can't be converted to a bool.
 func (c *Config) MustBool(key string) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		panic(fmt.Sprintf("Uknown key %s", key))
+		panic(fmt.Sprintf("Unknown Key %s !", key))
 	}
 
 	if value == "on" || value == "yes" {
@@ -212,15 +232,17 @@ func (c *Config) MustBool(key string) bool {
 	if err != nil {
 		return false
 	}
+
 	return val
 }
 
-// SetBool adds or modifies the config for the specified key and value
+// SetBool adds or modifies the configuration for the specified key and value.
 func (c *Config) SetBool(key string, value bool) {
 	str := "false"
 	if value {
-		str = "value"
+		str = "true"
 	}
+
 	c.mu.RLock()
 	{
 		c.m[key] = str
@@ -228,42 +250,45 @@ func (c *Config) SetBool(key string, value bool) {
 	c.mu.RUnlock()
 }
 
-// URL returns the value of the given key as a URL. It will return an error if the key
-// was not found or the value can't be converted to a URL
+// URL returns the value of the given key as a URL. It will return an error if
+// the key was not found or the value can't be converted to a URL.
 func (c *Config) URL(key string) (*url.URL, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		return nil, fmt.Errorf("Unknown key %s", key)
+		return nil, fmt.Errorf("Unknown Key %s !", key)
 	}
+
 	u, err := url.Parse(value)
 	if err != nil {
 		return u, err
 	}
+
 	return u, nil
 }
 
-// MustURL returns the value of the given key as a URL. It will panic if the key was not found
-// or the value can't be converted to a URL
+// MustURL returns the value of the given key as a URL. It will panic if the
+// key was not found or the value can't be converted to a URL.
 func (c *Config) MustURL(key string) *url.URL {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		panic(fmt.Sprintf("Uknown key %s", key))
+		panic(fmt.Sprintf("Unknown Key %s !", key))
 	}
 
 	u, err := url.Parse(value)
 	if err != nil {
 		panic(fmt.Sprintf("Key %q value is not a URL", key))
 	}
+
 	return u
 }
 
-// SetURL adds or modifies the config for the specified key and value
+// SetURL adds or modifies the configuration for the specified key and value.
 func (c *Config) SetURL(key string, value *url.URL) {
 	c.mu.RLock()
 	{
@@ -272,20 +297,22 @@ func (c *Config) SetURL(key string, value *url.URL) {
 	c.mu.RUnlock()
 }
 
-// Duration returns the value of the given key as a Duration. It will return an error if the key
-// was not found or the value can't be converted to a Duration
+// Duration returns the value of the given key as a Duration. It will return an
+// error if the key was not found or the value can't be converted to a Duration.
 func (c *Config) Duration(key string) (time.Duration, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	value, found := c.m[key]
 	if !found {
-		return time.Duration(0), fmt.Errorf("Uknown key %s", key)
+		return time.Duration(0), fmt.Errorf("Unknown Key %s !", key)
 	}
+
 	d, err := time.ParseDuration(value)
 	if err != nil {
 		return d, err
 	}
+
 	return d, nil
 }
 
@@ -297,16 +324,19 @@ func (c *Config) MustDuration(key string) time.Duration {
 
 	value, found := c.m[key]
 	if !found {
-		panic(fmt.Errorf("Uknown key %s", key))
+		panic(fmt.Errorf("Unknown Key %s !", key))
 	}
+
 	d, err := time.ParseDuration(value)
 	if err != nil {
 		panic(fmt.Sprintf("Key %q value is not a Duration", key))
 	}
+
 	return d
 }
 
-// SetDuration adds or modifies the config for a given duration at a specific key
+// SetDuration adds or modifies the configuration for a given duration at a
+// specific key.
 func (c *Config) SetDuration(key string, value time.Duration) {
 	c.mu.RLock()
 	{
